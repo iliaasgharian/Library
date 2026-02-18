@@ -131,8 +131,7 @@ Delete book : delete book [book_id]
                             resources.append(model.Resources.resources[model.Resources.resources.index(int(i))])  
                             
                     # print(categories)    
-                    print("ttyhty")  
-                    print(type(release_date))          
+                         
                     b1=model.Book(None,title,code,categories,age_group,release_date,authors,price,languages,publisher,designers,translators,resources)                   
                     b2 = LibraryDataAdapter.BookDataAdapter.insert(b1)
                     
