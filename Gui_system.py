@@ -2,7 +2,7 @@ import LibraryDataAdapter
 import model
 import sqlite3
 import tkinter as tk
-
+import datetime
 
 connection = sqlite3.connect("NewLibrary.db")
 cursor = connection.cursor()
@@ -22,38 +22,83 @@ def save():
     v3 = input3.get()
     if edit_mode == False:
         if v1 != "" and v2 != "" and v3 != "":
-            a1 = model.Author(None, v1, v2, v3)
-            a2 = LibraryDataAdapter.AuthorDataAdapter.insert(a1)
-            update_listbox()
+            try:
+                date_object = datetime.datetime.strptime(v2, "%Y-%m-%d").date()
+                s = v2.split("-")
+                v2n = v2.split("-")[-1]
+                v2n2 = v2.split("-")[-2]
 
-            input1.delete(0, tk.END)
-            input2.delete(0, tk.END)
-            input3.delete(0, tk.END)
-            edit_mode = False
-            lb.selection_clear(0, tk.END)
-            button2.config(text="Save")
+                if int(v2n) <= 9 and len(v2n) == 1:
+
+                    vn2 = ("0{}".format(v2n))
+                else:
+                    vn2 = s[2]
+
+                if int(v2n2) <= 9 and len(v2n2) == 1:
+                    vn22 = ("0{}".format(v2n2))
+                else:
+                    vn22 = s[1]
+
+                finalv2 = "{}-{}-{}".format(s[0], vn22, vn2)
+
+                a1 = model.Author(None, v1, finalv2, v3)
+                a2 = LibraryDataAdapter.AuthorDataAdapter.insert(a1)
+                update_listbox()
+
+                input1.delete(0, tk.END)
+                input2.delete(0, tk.END)
+                input3.delete(0, tk.END)
+                edit_mode = False
+                lb.selection_clear(0, tk.END)
+                button2.config(text="Save")
+            except:
+                print("invalid birthdate")
 
         else:
             pass
     elif edit_mode == True:
         if v1 != "" and v2 != "" and v3 != "":
-            selected_indices = lb.curselection()
-            if not selected_indices:
-                return
+            try:
+                date_object = datetime.datetime.strptime(v2, "%Y-%m-%d").date()
+                s = v2.split("-")
+                v2n = v2.split("-")[-1]
+                v2n2 = v2.split("-")[-2]
 
-            selected_items = [lb.get(i) for i in selected_indices]
-            s1 = selected_items[0].split(",")
-            s2 = s1[0].split("id: ")
-            id1 = int(s2[1])
-            s = LibraryDataAdapter.AuthorDataAdapter.update(id1, v1, v2, v3)
-            update_listbox()
+                if int(v2n) <= 9 and len(v2n) == 1:
 
-            input1.delete(0, tk.END)
-            input2.delete(0, tk.END)
-            input3.delete(0, tk.END)
-            edit_mode = False
-            lb.selection_clear(0, tk.END)
-            button2.config(text="Save")
+                    vn2 = ("0{}".format(v2n))
+                else:
+                    vn2 = s[2]
+
+                if int(v2n2) <= 9 and len(v2n2) == 1:
+                    vn22 = ("0{}".format(v2n2))
+                else:
+                    vn22 = s[1]
+
+                finalv2 = "{}-{}-{}".format(s[0], vn22, vn2)
+
+                selected_indices = lb.curselection()
+                if not selected_indices:
+                    return
+                selected_items = [lb.get(i) for i in selected_indices]
+                s1 = selected_items[0].split(",")
+                s2 = s1[0].split("id: ")
+                id1 = int(s2[1])
+                s = LibraryDataAdapter.AuthorDataAdapter.update(
+                    id1, v1, finalv2, v3)
+                update_listbox()
+
+                input1.delete(0, tk.END)
+                input2.delete(0, tk.END)
+                input3.delete(0, tk.END)
+                edit_mode = False
+                lb.selection_clear(0, tk.END)
+                button2.config(text="Save")
+            except:
+                print("invalid birthdate")
+
+        else:
+            pass
 
 
 def clear():
