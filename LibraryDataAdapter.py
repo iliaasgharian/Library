@@ -48,6 +48,22 @@ class CategoryDataAdapter:
 
 
 class AuthorDataAdapter:
+    @staticmethod
+    def update(id:int,name:str,birthdate: datetime.date,nationality:str):
+        
+        s = cursor.execute("""Update authors
+                                   SET name='{}',birthdate='{}',nationality='{}'
+                                   where id={};""".format(name,str(birthdate),nationality,id))
+        connection.commit()
+        return 
+        
+    @staticmethod
+    def get_one(id: int):
+        s = cursor.execute("Select * from authors where id=={}".format(id))
+        lis = []
+        for i in s:
+            lis.append(model.Author(i[0], i[1], i[2], i[3]))
+        return lis
 
     @staticmethod
     def get_all():
@@ -468,30 +484,61 @@ class BookDataAdapter:
 
     @staticmethod
     def search(name: str = "", author_name: str = "", publisher_name: str = "", category_name: str = "", language_name: str = "", designer_name: str = "", translator_name: str = "", resource_name: str = ""):
+        publishers = PublisherDataAdapter.search(
+            publisher_name) if publisher_name != "" else PublisherDataAdapter.search("")
+        publisher_id = [i.id for i in publishers if i != None]
+        publishers = str(tuple(publisher_id)).replace(",)", ")")
 
-        s = cursor.execute("""
-                           SELECT books.id,books.title,books.product_code,books.age_group,publishers.id,books.release_date,books.price,authors.id,categories.id,cover_designers.id,languages.id,translators.id,resources.id FROM books
+        authors = AuthorDataAdapter.search(
+            author_name) if author_name != "" else AuthorDataAdapter.search("")
+        author_id = [i.id for i in authors if i != None]
+        authors = str(tuple(author_id)).replace(",)", ")")
+
+        categories = CategoryDataAdapter.search(
+            category_name) if category_name != "" else CategoryDataAdapter.search("")
+        category_id = [i.id for i in categories if i != None]
+        categories = str(tuple(category_id)).replace(",)", ")")
+
+        languages = LanguageDataAdapter.search(
+            language_name) if language_name != "" else LanguageDataAdapter.search("")
+        language_id = [i.id for i in languages if i != None]
+        languages = str(tuple(language_id)).replace(",)", ")")
+
+        designers = DesignerDataAdapter.search(
+            designer_name) if designer_name != "" else DesignerDataAdapter.search("")
+        designer_id = [i.id for i in designers if i != None]
+        designers = str(tuple(designer_id)).replace(",)", ")")
+
+        translators = TranslatorDataAdapter.search(
+            translator_name) if translator_name != "" else TranslatorDataAdapter.search("")
+        translator_id = [i.id for i in translators if i != None]
+        translators = str(tuple(translator_id)).replace(",)", ")")
+
+        resources = ResourcesDataAdapter.search(
+            resource_name) if resource_name != "" else ResourcesDataAdapter.search("")
+        resources_id = [i.id for i in resources if i != None]
+        resources = str(tuple(resources_id)).replace(",)", ")")
+
+        # print(publishers, authors, categories, languages,
+        #       designers, translators, resources)
+
+        s = cursor.execute("""SELECT books.id,books.title,books.product_code,books.age_group
+                        ,books.publisher_id,books.release_date,books.price,author_id,category_id
+                        ,designer_id,language_id,translator_id,resource_id  from books  
                          LEFT JOIN publishers on books.publisher_id = publishers.id  
-                         LEFT JOIN book_author on books.id = book_author.book_id LEFT JOIN authors on authors.id = book_author.author_id
-                         LEFT JOIN book_category on books.id = book_category.book_id LEFT JOIN categories on categories.id = book_category.category_id
-                         LEFT JOIN book_language on books.id = book_language.book_id LEFT JOIN languages on languages.id = book_language.language_id
-                         LEFT JOIN book_designer on books.id = book_designer.book_id LEFT JOIN cover_designers on cover_designers.id = book_designer.designer_id
-                         LEFT JOIN book_translator on books.id = book_translator.book_id LEFT JOIN translators on translators.id = book_translator.translator_id
-                         LEFT JOIN resources_book on books.id = resources_book.book_id LEFT JOIN resources on resources.id = resources_book.resource_id
+                         LEFT JOIN book_author on books.id = book_author.book_id 
+                         LEFT JOIN book_category on books.id = book_category.book_id 
+                         LEFT JOIN book_language on books.id = book_language.book_id
+                         LEFT JOIN book_designer on books.id = book_designer.book_id
+                         LEFT JOIN book_translator on books.id = book_translator.book_id
+                         LEFT JOIN resources_book on books.id = resources_book.book_id
                          
-                         WHERE books.title like '%{}%' and (publishers.name like '%{}%' or publishers.name is NULL) and (authors.name like '%{}%' or authors.name is NULL) and (categories.name like '%{}%' or categories.name is NULL)  and (languages.name like '%{}%' or 
-                         languages.name is NULL) and (cover_designers.name like '%{}%' or cover_designers.name is NULL ) and (translators.name like '%{}%' or translators.name is NULL) and (resources.name like '%{}%' or resources.name is NULL)
-                         """
-
-                           .format(name, publisher_name, author_name, category_name, language_name, designer_name, translator_name, resource_name))
-        # books = []
-        # for i in s:
-        #     print(i[16], i[17])
-        #     s=model.Language(i[16], i[17])
-        #     books.append(model.Book(i[0], i[1], i[2], [model.Category(i[3], i[4])], i[5], [model.Author(i[6],
-        #                  i[7], i[8], i[9])],[model.Publisher( i[10], i[11], i[12],i[13])], i[14], i[15],[s], [model.CoverDesigner(i[18], i[19], i[20],i[21],)],[model.Translator( i[22], i[23], i[24])], [model.Resources(i[25],i[26])]))
-        # return books
-
+                         where (books.title like '%{}%') and (author_id in {}) and (publisher_id in {}) 
+                         and (category_id in {}) and (designer_id in {}) and (language_id in {}) and 
+                         (translator_id in {})  and (resource_id in {}) 
+                         """.format(name, authors, publishers, categories, designers,
+                                    languages, translators, resources))
+        # print(list(s))
         table = list(s)
 
         categories = CategoryDataAdapter.get_all()
